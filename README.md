@@ -396,6 +396,52 @@ docker ps
 Confirm that `ecommerce-container` is running.
 Successfully created a two-page e-commerce web application and deployed it using Docker.
 
+....index.html code
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My E-Commerce Store</title>
+</head>
+<body>
+    <h1>Welcome to My E-Commerce Store</h1>
+    <p>Shop for your favorite products!</p>
+
+    <h2>Our Store</h2>
+    <p>We offer quality products at affordable prices.</p>
+
+    <a href="products.html">View Products</a>
+</body>
+</html>
+
+
+....products.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Our Products</title>
+</head>
+<body>
+    <h1>Our Products</h1>
+
+    <h2>Product 1: Headphones</h2>
+    <p>Price: Rs. 999</p>
+    <p>High-quality headphones for music lovers.</p>
+
+    <h2>Product 2: Smart Watch</h2>
+    <p>Price: Rs. 1499</p>
+    <p>A stylish smartwatch for everyday use.</p>
+
+    <h2>Product 3: Backpack</h2>
+    <p>Price: Rs. 799</p>
+    <p>A durable backpack for college and travel.</p>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>
+
+
 
 ...................................................................................................................................................................
 
