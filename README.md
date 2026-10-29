@@ -1,3 +1,18 @@
+passwords:
+
+github - codexshev@5
+aws -Anushka_aws-Aws/me/26
+jenkins-shevanu5-jerkin16
+jira-jirasoda@26
+ubuntu/wsl-anushkash-shev@05
+
+
+
+
+
+
+
+
 #1 : jira-github-jenkins
 
 go to jira -> space -> crate new (asd practical) ->select kanban -> board -> to do -> assign 5 tasks -> create a github repo -> tick the readme on -> jira -> asd practical -> development -> connect -> github-jira -> go to repo -> commit a change -> back to board -> (development:commit) -> check commits ..(commits will be displayed)...(remember add commit msg with  eg.DEVOPS4 / task key)....aws -> login to aws console ->
