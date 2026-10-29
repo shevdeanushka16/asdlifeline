@@ -713,8 +713,210 @@ Successfully provisioned an EC2 instance in AWS using Terraform.
 This configuration does not open inbound ports, so the instance is not publicly accessible for SSH or HTTP by default. EC2 instances and related resources can incur charges. After your practical, run `terraform destroy` from the project folder and confirm with `yes` if you no longer need the instance.
 
 
+arn:aws:iam::753036488105:u2f/root/shravani_salvi-O2GX6HDGJ5DWFJQBHL5Q333YEQ MFA
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+variable "ami_id" {
+  description = "Amazon Linux 2023 AMI ID"
+  type        = string
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t3.micro"
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+resource "aws_security_group" "web" {
+  name        = "terraform-practical-web-sg"
+  description = "Allow HTTP traffic"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "terraform-practical-web-sg"
+  }
+}
+
+resource "aws_instance" "web" {
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  subnet_id                   = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids      = [aws_security_group.web.id]
+  associate_public_ip_address = true
+
+  user_data = <<-EOF
+    #!/bin/bash
+    dnf install -y nginx || yum install -y nginx
+    systemctl enable nginx
+    systemctl start nginx
+    echo '<h1>Terraform EC2 practical successful</h1>' > /usr/share/nginx/html/index.html
+  EOF
+
+  tags = {
+    Name = "terraform-practical-ec2"
+  }
+}
+
+output "instance_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.web.public_ip
+}
 
 
+winget install --id Hashicorp.Terraform -e
+winget install --id Amazon.AWSCLI -e
+terraform -version
+aws --version
+aws configure set output json
+aws sts get-caller-identity
+
+mkdir "%USERPROFILE%\terraform-practical"
+cd /d "%USERPROFILE%\terraform-practical"
+notepad main.tf
+
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+variable "ami_id" {
+  description = "Amazon Linux 2023 AMI ID"
+  type        = string
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t3.micro"
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+resource "aws_security_group" "web" {
+  name        = "terraform-practical-web-sg"
+  description = "Allow HTTP traffic"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "terraform-practical-web-sg"
+  }
+}
+
+resource "aws_instance" "web" {
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  subnet_id                   = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids      = [aws_security_group.web.id]
+  associate_public_ip_address = true
+
+  user_data = <<-EOF
+    #!/bin/bash
+    dnf install -y nginx || yum install -y nginx
+    systemctl enable nginx
+    systemctl start nginx
+    echo '<h1>Terraform EC2 practical successful</h1>' > /usr/share/nginx/html/index.html
+  EOF
+
+  tags = {
+    Name = "terraform-practical-ec2"
+  }
+}
+
+output "instance_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.web.public_ip
+}
+
+cd /d "%USERPROFILE%\terraform-practical"
+
+terraform init
+
+terraform fmt
+
+terraform validate
+
+aws ec2 describe-images --owners amazon --filters "Name=name,Values=al2023-ami-2023.*-x86_64" "Name=state,Values=available" --query "sort_by(Images, &CreationDate)[-1].[ImageId,Name]" --output table --region ap-south-1
+
+terraform plan -var="ami_id=ami-0ee5a319d86dca0ab"
+
+terraform apply -var="ami_id=ami-0ee5a319d86dca0ab"
+
+terraform output instance_public_ip
+cd /d "%USERPROFILE%\terraform-practical"
+terraform destroy -var="ami_id=ami-0ee5a319d86dca0ab"
 
 
 
