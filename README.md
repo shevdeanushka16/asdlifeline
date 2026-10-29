@@ -6,6 +6,7 @@ jenkins-shevanu5-jerkin16
 jira-jirasoda@26
 ubuntu/wsl-anushkash-shev@05
 
+shravanisalvi28@gmail.com : Han_Jisung_1409
 
 
 
