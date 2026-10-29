@@ -195,7 +195,109 @@ This tells Jenkins to check the remote repository approximately every 5 minutes.
 
 ...................................................................................................................................................................
 
+
 #4 : lambda-dynamodb tbl
+
+# Practical 4: Store Registration Form Data Using AWS Lambda and DynamoDB
+
+## Aim
+To write an AWS Lambda function that stores registration form information in an Amazon DynamoDB table.
+
+## Steps to Perform
+
+### 1. Open AWS Console
+1. Log in to https://console.aws.amazon.com/
+2. Select the Mumbai region (`ap-south-1`).
+
+### 2. Create a DynamoDB Table
+1. Search for **DynamoDB**.
+2. Select **Create table**.
+3. Table name: `RegistrationTable`
+4. Partition key: `registrationId` (String).
+5. Click **Create table**.
+
+### 3. Create an IAM Role
+1. Open IAM → Roles → Create role.
+2. Select **AWS service → Lambda**.
+3. Attach `AWSLambdaBasicExecutionRole`.
+4. Create the role.
+5. Add an inline policy allowing `dynamodb:PutItem` on `RegistrationTable`.
+
+### 4. Create a Lambda Function
+1. Open AWS Lambda → Create function.
+2. Select **Author from scratch**.
+3. Function name: `RegistrationFunction`.
+4. Runtime: Python.
+5. Select the IAM role created above.
+6. Create the function.
+
+### 5. Write the Lambda Code
+
+Replace the default code with:
+
+```python
+import json
+import boto3
+import uuid
+
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("RegistrationTable")
+
+def lambda_handler(event, context):
+    body = event.get("body", event)
+
+    if isinstance(body, str):
+        body = json.loads(body)
+
+    item = {
+        "registrationId": str(uuid.uuid4()),
+        "name": body["name"],
+        "email": body["email"]
+    }
+
+    table.put_item(Item=item)
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "Registration successful",
+            "registrationId": item["registrationId"]
+        })
+    }
+```
+
+Click **Deploy**.
+
+### 6. Test the Function
+1. Click **Test → Create new event**.
+2. Enter the test event:
+
+```json
+{
+  "name": "Anushka",
+  "email": "anushka@example.com"
+}
+```
+
+3. Save the event and click **Test**.
+4. Verify that the function succeeds.
+
+### 7. Verify DynamoDB Data
+1. Open DynamoDB → Tables → `RegistrationTable`.
+2. Select **Explore table items**.
+3. Verify that the registration ID, name, and email are stored.
+
+## Result
+Successfully created an AWS Lambda function to store registration form data in DynamoDB.
+
+## Important Note
+The sample Lambda test accepts a JSON object directly. A real HTML registration form needs an API Gateway endpoint or another integration to send its form data to Lambda.
+
+
+
+
+
+
 
 ...................................................................................................................................................................
 
@@ -445,11 +547,272 @@ Successfully created a two-page e-commerce web application and deployed it using
 
 ...................................................................................................................................................................
 
+
+
 #7 : terraform ec2
+
+
+# Practical 7: Provision an AWS EC2 Instance Using Terraform
+
+## Aim
+To install Terraform and provision an EC2 instance on Amazon Web Services.
+
+## Steps to Perform
+
+### 1. Install Terraform
+1. Download Terraform from https://developer.hashicorp.com/terraform/install.
+2. Install it and ensure it is added to PATH.
+3. Open PowerShell and verify:
+
+```powershell
+terraform -version
+```
+
+### 2. Configure AWS CLI
+Install AWS CLI from https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html.
+
+Configure your AWS credentials:
+
+```powershell
+aws configure
+```
+
+Enter your AWS Access Key ID, Secret Access Key, default region (`ap-south-1`) and output format (`json`).
+
+Verify the credentials:
+
+```powershell
+aws sts get-caller-identity
+```
+
+### 3. Create a Project Folder
+
+```powershell
+mkdir terraform-ec2
+cd terraform-ec2
+```
+
+### 4. Create the Terraform File
+
+```powershell
+notepad main.tf
+```
+
+Paste the following code:
+
+```hcl
+provider "aws" {
+  region = "ap-south-1"
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023*-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_instance" "demo" {
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.micro"
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "Terraform-Practical"
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.demo.id
+}
+
+output "public_ip" {
+  value = aws_instance.demo.public_ip
+}
+```
+
+Save and close Notepad.
+
+### 5. Initialize Terraform
+
+```powershell
+terraform init
+```
+
+This downloads the AWS provider.
+
+### 6. Validate the Configuration
+
+```powershell
+terraform validate
+```
+
+### 7. Preview the Changes
+
+```powershell
+terraform plan
+```
+
+Review the resources Terraform plans to create.
+
+### 8. Create the EC2 Instance
+
+```powershell
+terraform apply
+```
+
+Type `yes` when prompted.
+
+### 9. Verify the Instance
+
+```powershell
+terraform output
+```
+
+Open AWS Console → EC2 → Instances and verify that `Terraform-Practical` is running.
+
+## Important Commands
+
+| Command | Purpose |
+|---|---|
+| `terraform init` | Initialize the project |
+| `terraform validate` | Check configuration syntax |
+| `terraform plan` | Preview changes |
+| `terraform apply` | Create resources |
+| `terraform output` | Display outputs |
+| `terraform destroy` | Delete resources created by Terraform |
+
+## Result
+Successfully provisioned an EC2 instance in AWS using Terraform.
+
+## Important Note
+This configuration does not open inbound ports, so the instance is not publicly accessible for SSH or HTTP by default. EC2 instances and related resources can incur charges. After your practical, run `terraform destroy` from the project folder and confirm with `yes` if you no longer need the instance.
+
+
+
+
+
+
+
 
 ...................................................................................................................................................................
 
+
+
 #8 : lambda-date-time
+
+
+# Practical 8: Store Date and Time in DynamoDB Using AWS Lambda
+
+## Aim
+To write an AWS Lambda function that stores the current date and time in a DynamoDB table whenever the function executes.
+
+## Steps to Perform
+
+### 1. Open AWS Console
+1. Log in to https://console.aws.amazon.com/.
+2. Select the Mumbai region (`ap-south-1`).
+
+### 2. Create a DynamoDB Table
+1. Search for **DynamoDB**.
+2. Click **Create table**.
+3. Table name: `DateTimeTable`
+4. Partition key: `executionId` (String).
+5. Click **Create table**.
+
+### 3. Create an IAM Role
+1. Open IAM → Roles → Create role.
+2. Select **AWS service → Lambda**.
+3. Attach `AWSLambdaBasicExecutionRole`.
+4. Create the role.
+5. Add an inline policy permitting `dynamodb:PutItem` on `DateTimeTable`.
+
+### 4. Create a Lambda Function
+1. Open AWS Lambda → Create function.
+2. Select **Author from scratch**.
+3. Function name: `StoreDateTime`.
+4. Choose a Python runtime.
+5. Select the IAM role created above.
+6. Click **Create function**.
+
+### 5. Write the Lambda Code
+
+Replace the default code with:
+
+```python
+import json
+import boto3
+import uuid
+from datetime import datetime, timezone
+
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("DateTimeTable")
+
+def lambda_handler(event, context):
+    now = datetime.now(timezone.utc)
+
+    item = {
+        "executionId": str(uuid.uuid4()),
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M:%S"),
+        "timestamp": now.isoformat()
+    }
+
+    table.put_item(Item=item)
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "Date and time stored successfully",
+            "date": item["date"],
+            "time": item["time"]
+        })
+    }
+```
+
+Click **Deploy**.
+
+### 6. Test the Function
+1. Click **Test → Create new event**.
+2. Give the event a name, such as `DateTimeTest`.
+3. Keep the default empty JSON event `{}`.
+4. Save the event and click **Test**.
+
+The function should execute successfully and return the date and time.
+
+### 7. Verify DynamoDB Data
+1. Open DynamoDB → Tables → `DateTimeTable`.
+2. Click **Explore table items**.
+3. Verify the stored execution ID, date, time, and timestamp.
+
+Run the function again and refresh the table to see another record.
+
+## Important Terms
+
+| Term | Meaning |
+|---|---|
+| AWS Lambda | Runs code without managing servers |
+| DynamoDB | A managed NoSQL database |
+| `boto3` | Python SDK used to access AWS services |
+| `put_item()` | Inserts or replaces a DynamoDB item |
+| UUID | A unique identifier for each execution |
+| UTC | Coordinated Universal Time |
+
+## Result
+Successfully created an AWS Lambda function that stores the current date and time in DynamoDB whenever it executes.
+
+
+
+
+
 
 ...................................................................................................................................................................
 
